@@ -1,0 +1,382 @@
+<div class="container">
+  <div class="header">
+    <div class="left-side">
+      <i class="fa-solid fa-users"></i>
+      <h2>User Details</h2>
+    </div>
+    <div class="search d-flex">
+      <input
+        class="form-control me-2"
+        type="search"
+        [(ngModel)]="searchText"
+        (input)="search(searchText)"
+        placeholder="search by name..."
+        aria-label="Search"
+      />
+      <i class="fa-solid fa-user-plus"></i>
+      <button class="btn btn-primary" (click)="openFormSignupModal(modal)">
+        Add_users
+      </button>
+    </div>
+  </div>
+  <table class="table">
+    <thead>
+      <tr class="sort">
+        <th><span (click)="sortClick('id')">#</span></th>
+        <th>
+          <span (click)="sortClick('name')">Name</span>
+          <span
+            class="sortorder descending"
+            [hidden]="sortType === 'name' && reverse === true"
+          ></span>
+          <span
+            class="sortorder"
+            [hidden]="sortType === 'name' && reverse === false"
+          ></span>
+        </th>
+        <th>
+          <span (click)="sortClick('address')">Address</span>
+          <span
+            class="sortorder descending"
+            [hidden]="sortType === 'address' && reverse == true"
+          ></span>
+          <span
+            class="sortorder"
+            [hidden]="sortType === 'address' && reverse === false"
+          ></span>
+        </th>
+        <th>
+          <span (click)="sortClick('email')">Email</span>
+          <span
+            class="sortorder descending"
+            [hidden]="sortType === 'email' && reverse == true"
+          ></span>
+          <span
+            class="sortorder"
+            [hidden]="sortType === 'email' && reverse === false"
+          ></span>
+        </th>
+        <th>
+          <span (click)="sortClick('mobile')">Mobile</span>
+          <span
+            class="sortorder descending"
+            [hidden]="sortType === 'mobile' && reverse == true"
+          ></span>
+          <span
+            class="sortorder"
+            [hidden]="sortType === 'mobile' && reverse === false"
+          ></span>
+        </th>
+        <th>
+          <span (click)="sortClick('city')">Gender</span>
+          <span
+            class="sortorder descending"
+            [hidden]="sortType === 'gender' && reverse == true"
+          ></span>
+          <span
+            class="sortorder"
+            [hidden]="sortType === 'gender' && reverse === false"
+          ></span>
+        </th>
+        <th>
+          <span (click)="sortClick('city')">City</span>
+          <span
+            class="sortorder descending"
+            [hidden]="sortType === 'city' && reverse == true"
+          ></span>
+          <span
+            class="sortorder"
+            [hidden]="sortType === 'city' && reverse === false"
+          ></span>
+        </th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <div *ngIf="search_Data_Available; then printData; else empty"></div>
+    <ng-template #printData>
+      <tbody>
+        <tr *ngFor="let user of userData">
+          <th>{{ user.id }}</th>
+          <td>{{ user.name }}</td>
+          <td>{{ user.address }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.mobile }}</td>
+          <td>{{ user.gender }}</td>
+          <td>{{ user.city }}</td>
+          <td>
+            <div class="worksheet">
+              <button
+                type="button"
+                class="btn btn-primary margin-right"
+                (click)="openFormUpdateModal(modal, user.id)"
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-danger"
+                (click)="openDeleteModal(deleteModal, user.id)"
+              >
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </ng-template>
+    <ng-template #empty>
+      <h2>data not found.......</h2>
+    </ng-template>
+  </table>
+
+  <div class="bottom">
+    <div class="items-per-page">
+      <label>Rows per pages:</label>
+      <select (change)="changeItemsPerPage($event.target)">
+        <option [value]="item" *ngFor="let item of limits; let i = index">
+          {{ item }}
+        </option>
+      </select>
+    </div>
+    <div class="pagination">
+      <pagination
+        [boundaryLinks]="showBoundaryLinks"
+        [totalItems]="count"
+        [itemsPerPage]="limit"
+        [rotate]="rotate"
+        [maxSize]="maxSize"
+        [(ngModel)]="currentPage"
+        name="currentPage"
+        (pageChanged)="changePage($event)"
+      ></pagination>
+    </div>
+  </div>
+
+  <!-- Form-Modals-->
+  <ng-template #modal>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left" *ngIf="isAdded">Registration</h4>
+      <h4 class="modal-title pull-left" *ngIf="isEditted">Update</h4>
+      <button
+        type="button"
+        class="btn-close close pull-right"
+        aria-label="Close"
+        (click)="modalRef?.hide()"
+      >
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form class="form" [formGroup]="usersForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Name"
+            formControlName="name"
+          />
+          <div
+            *ngIf="
+              usersForm.controls['name']?.invalid &&
+              (usersForm.controls['name']?.dirty ||
+                usersForm.controls['name']?.touched)
+            "
+            class="alert alert-danger"
+          >
+            <div *ngIf="usersControls['name'].errors?.['required']">
+              Name is required.
+            </div>
+            <div *ngIf="usersControls['name'].errors?.['minlength']">
+              minimum char length must be 3.
+            </div>
+            <div *ngIf="usersControls['name'].errors?.['maxlength']">
+              maximum char length should be less than 50
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <textarea
+            class="form-control"
+            rows="3"
+            placeholder="Address"
+            formControlName="address"
+          ></textarea>
+          <div
+            *ngIf="
+              usersControls['address']?.invalid &&
+              (usersControls['address']?.dirty || usersControls['address']?.touched)
+            "
+            class="alert alert-danger"
+          >
+            <div *ngIf="usersControls['address'].errors?.['required']">
+              Address is required.
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <input
+            type="email"
+            class="form-control"
+            placeholder="Email"
+            formControlName="email"
+          />
+          <div
+            *ngIf="
+              usersControls['email']?.invalid &&
+              (usersControls['email']?.dirty || usersControls['email']?.touched)
+            "
+            class="alert alert-danger"
+          >
+            <div *ngIf="usersControls['email'].errors?.['required']">
+              email is required.
+            </div>
+            <div *ngIf="usersControls['email'].errors?.['email']">
+              email must be valid.
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <input
+            type="number"
+            class="form-control"
+            placeholder="Mobile no"
+            formControlName="mobile"
+          />
+          <div
+            *ngIf="
+              usersControls['mobile']?.invalid &&
+              (usersControls['mobile']?.dirty || usersControls['mobile']?.touched)
+            "
+            class="alert alert-danger"
+          >
+            <div *ngIf="usersControls['mobile'].errors?.['required']">
+              mobile no. is required.
+            </div>
+            <div
+              *ngIf=" usersControls['mobile'].errors?.['minlength'] || usersControls['mobile'].errors?.['maxlength']"
+            >
+              Phone number must be 10 Digits.
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" name="gender">Gender</label>
+          <div>
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="gender"
+                value="male"
+                formControlName="gender"
+              />
+              <label class="form-check-label">male</label>
+            </div>
+
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="gender"
+                value="female"
+                formControlName="gender"
+              />
+              <label class="form-check-label">female</label>
+            </div>
+          </div>
+          <div
+          *ngIf="usersControls['gender'].touched && usersControls['gender'].invalid"
+          class="alert alert-danger"
+        >
+          <div *ngIf="usersControls['gender'].errors?.['required']">
+            gender is required.
+          </div>
+        </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">City</label>
+          <select
+            class="form-select"
+            formControlName="city"
+            aria-label="Default select example"
+          >
+            <option value="" selected>select City</option>
+            <option [value]="city" *ngFor="let city of cities">
+              {{ city }}
+            </option>
+          </select>
+
+          <div
+          *ngIf="usersControls['city']?.invalid && (usersControls['city']?.dirty || usersControls['city']?.touched)"
+          class="alert alert-danger"
+        >
+          <div *ngIf="usersControls['city'].errors?.['required']">
+            select city must be required.
+          </div>
+        </div>
+        </div>
+
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            formControlName="checkedOut"
+          />
+          <label class="form-check-label">
+            I agree to the company terms and policy.
+          </label>
+        </div>
+        <div
+          *ngIf="usersControls['checkedOut'].touched && usersControls['checkedOut'].invalid"
+          class="alert alert-danger"
+        >
+          <div *ngIf="usersControls['checkedOut'].errors?.['required']">
+            Please select the terms and conditions.
+          </div>
+        </div>
+
+        <div class="form-btn">
+          <div *ngIf="isAdded">
+            <button
+              type="submit"
+              class="btn btn-primary margin-right"
+              (click)="modalRef?.hide()"
+              [disabled]="usersForm['invalid']"
+            >
+              Signup
+            </button>
+          </div>
+          <div *ngIf="isEditted">
+            <button
+              type="submit"
+              class="btn btn-primary margin-right"
+              (click)="modalRef?.hide()"
+              [disabled]="usersForm['invalid']"
+            >
+              <span> Update</span>
+            </button>
+          </div>
+          <button type="button" class="btn btn-secondary" (click)="resetForm()">
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
+  </ng-template>
+
+  <!-- delete-Modal -->
+  <ng-template #deleteModal>
+    <div class="delete-popup">
+      <div>
+        <i>delete</i>
+        <p>Are you sure ? Do you want to delete user Hiren</p>
+        <button type="button" (click)="modalRef?.hide()">
+          <span>CANCEL</span>
+        </button>
+        <button (click)="deleteUser(); modalRef?.hide()">DELETE</button>
+      </div>
+    </div>
+  </ng-template>
+</div>
+
